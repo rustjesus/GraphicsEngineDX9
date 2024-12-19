@@ -221,6 +221,7 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Shaders\CubeShader.fx" />
     <Content Include="Shaders\CubeShader.hlsl" />
     <Content Include="Shaders\ImageShader.hlsl" />
     <Content Include="Shaders\Light.hlsl" />
