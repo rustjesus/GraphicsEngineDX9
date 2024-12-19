@@ -11,7 +11,7 @@ namespace GraphicsApp
 {
     public partial class Form1 : Form
     {
-        private SharpDX.Direct3D9.Device device;
+        private SharpDX.Direct3D9.Device device9;
         private VertexBuffer vertexBuffer;
         private IndexBuffer indexBuffer;
         private Effect shaderEffect;
@@ -71,7 +71,7 @@ namespace GraphicsApp
                 AutoDepthStencilFormat = Format.D16
             };
 
-            device = new SharpDX.Direct3D9.Device(
+            device9 = new SharpDX.Direct3D9.Device(
                 new Direct3D(),
                 0,
                 DeviceType.Hardware,
@@ -85,83 +85,28 @@ namespace GraphicsApp
             viewMatrix = Matrix.LookAtLH(new Vector3(0, 0, -10), Vector3.Zero, Vector3.UnitY);
             projectionMatrix = Matrix.PerspectiveFovLH((float)Math.PI / 4, ClientSize.Width / (float)ClientSize.Height, 0.1f, 100.0f);
 
-            // Initialize resources
-            InitializeBuffers();
             LoadShaderEffect();
 
             // Initialize the cube
-            cube = new Cube(device);
+            cube = new Cube(device9);
         }
-
-
-        private void InitializeBuffers()
+        private void LoadShaderEffect()
         {
-            // Vertex buffer
-            vertexBuffer = new VertexBuffer(
-                device,
-                Utilities.SizeOf<Vertex>() * 8,
-                Usage.WriteOnly,
-                VertexFormat.Position | VertexFormat.Diffuse,
-                Pool.Default
-            );
+                    // Locate the shader file
 
-            var vertices = new[]
-            {
-                new Vertex(new Vector3(-1, -1, -1), unchecked((int)0xFFFF0000)), // Red
-                new Vertex(new Vector3(-1, 1, -1), unchecked((int)0xFF00FF00)),  // Green
-                new Vertex(new Vector3(1, 1, -1), unchecked((int)0xFF0000FF)),   // Blue
-                new Vertex(new Vector3(1, -1, -1), unchecked((int)0xFFFFFF00)),  // Yellow
-                new Vertex(new Vector3(-1, -1, 1), unchecked((int)0xFFFF00FF)),  // Magenta
-                new Vertex(new Vector3(-1, 1, 1), unchecked((int)0xFF00FFFF)),   // Cyan
-                new Vertex(new Vector3(1, 1, 1), unchecked((int)0xFFFFFFFF)),    // White
-                new Vertex(new Vector3(1, -1, 1), unchecked((int)0xFF888888))    // Gray
-            };
+                    var projectRoot = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", ".."));
+                    var shaderPath = Path.Combine(projectRoot, "Shaders", "CubeShader.fx");
 
-            DataStream vertexStream = vertexBuffer.Lock(0, 0, LockFlags.None);
-            vertexStream.WriteRange(vertices);
-            vertexBuffer.Unlock();
+                    // Debugging: Print the shader path
+                    Console.WriteLine("Looking for shader file at: " + shaderPath);
 
-            // Index buffer
-            indexBuffer = new IndexBuffer(
-                device,
-                sizeof(short) * 36,
-                Usage.WriteOnly,
-                Pool.Default,
-                false
-            );
+                    if (!System.IO.File.Exists(shaderPath))
+                        throw new Exception("Shader file not found: " + shaderPath);
 
-            var indices = new short[]
-            {
-                0, 1, 2, 0, 2, 3,
-                4, 6, 5, 4, 7, 6,
-                4, 5, 1, 4, 1, 0,
-                3, 2, 6, 3, 6, 7,
-                1, 5, 6, 1, 6, 2,
-                4, 0, 3, 4, 3, 7
-            };
 
-            DataStream indexStream = indexBuffer.Lock(0, 0, LockFlags.None);
-            indexStream.WriteRange(indices);
-            indexBuffer.Unlock();
+                    // Load HLSL effect file
+                    shaderEffect = Effect.FromFile(device9, shaderPath, ShaderFlags.None);
         }
-
-private void LoadShaderEffect()
-{
-            // Locate the shader file
-
-            var projectRoot = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", ".."));
-            var shaderPath = Path.Combine(projectRoot, "Shaders", "CubeShader.fx");
-
-            // Debugging: Print the shader path
-            Console.WriteLine("Looking for shader file at: " + shaderPath);
-
-            if (!System.IO.File.Exists(shaderPath))
-                throw new Exception("Shader file not found: " + shaderPath);
-
-
-            // Load HLSL effect file
-            shaderEffect = Effect.FromFile(device, shaderPath, ShaderFlags.None);
-}
 
 
         private void RenderLoop(object sender, EventArgs e)
@@ -174,8 +119,8 @@ private void LoadShaderEffect()
         }
         private void Render()
         {
-            device.Clear(ClearFlags.Target | ClearFlags.ZBuffer, new RawColorBGRA(0, 128, 128, 255), 1.0f, 0);
-            device.BeginScene();
+            device9.Clear(ClearFlags.Target | ClearFlags.ZBuffer, new RawColorBGRA(0, 128, 128, 255), 1.0f, 0);
+            device9.BeginScene();
 
             // Set shader and matrices
             rotationSpeed += 0.01f;
@@ -195,8 +140,8 @@ private void LoadShaderEffect()
             }
 
             shaderEffect.End();
-            device.EndScene();
-            device.Present();
+            device9.EndScene();
+            device9.Present();
         }
 
         protected override void OnFormClosed(FormClosedEventArgs e)
@@ -205,7 +150,7 @@ private void LoadShaderEffect()
             vertexBuffer?.Dispose();
             indexBuffer?.Dispose();
             shaderEffect?.Dispose();
-            device?.Dispose();
+            device9?.Dispose();
             base.OnFormClosed(e);
         }
         private struct Vertex
