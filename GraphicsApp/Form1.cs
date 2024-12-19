@@ -147,17 +147,20 @@ namespace GraphicsApp
 
 private void LoadShaderEffect()
 {
-    // Locate the shader file
-    var shaderPath = Path.Combine(Environment.CurrentDirectory, "CubeShader.fx");
+            // Locate the shader file
 
-    // Debugging: Print the shader path
-    Console.WriteLine("Looking for shader file at: " + shaderPath);
+            var projectRoot = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", ".."));
+            var shaderPath = Path.Combine(projectRoot, "Shaders", "CubeShader.fx");
 
-    if (!System.IO.File.Exists(shaderPath))
-        throw new Exception("Shader file not found: " + shaderPath);
+            // Debugging: Print the shader path
+            Console.WriteLine("Looking for shader file at: " + shaderPath);
 
-    // Load HLSL effect file
-    shaderEffect = Effect.FromFile(device, shaderPath, ShaderFlags.None);
+            if (!System.IO.File.Exists(shaderPath))
+                throw new Exception("Shader file not found: " + shaderPath);
+
+
+            // Load HLSL effect file
+            shaderEffect = Effect.FromFile(device, shaderPath, ShaderFlags.None);
 }
 
 
